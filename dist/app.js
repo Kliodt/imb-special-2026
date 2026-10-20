@@ -4,9 +4,12 @@ const tracks = window.GUIDE_TRACKS;
 const publicOrigin = window.GUIDE_RUNTIME?.publicOrigin;
 const allowedOrigins = [...new Set([location.origin, publicOrigin, ...(window.GUIDE_RUNTIME?.legacyOrigins || [])].filter(Boolean))];
 const incoming = parseGuideCode(location.href, allowedOrigins);
+let seeking = false;
 let startScreen = !incoming || incoming.type === 'start';
 let stream = null, frame = 0, cameraRun = 0, cameraTimeout = 0, photoRun = 0, photoPicking = false, wakeLock = null;
 const player = new GuidePlayer({ tracks, onChange: render });
+player.voice.volume = 0.9;
+player.bed.volume = 0.198;
 player.select(incoming?.index || 0, false);
 function time(value) {
   if (!Number.isFinite(value)) return '0:00';
@@ -15,15 +18,19 @@ function time(value) {
 }
 function render(state = player.snapshot()) {
   const track = tracks[state.index];
-  $('tracktitle').textContent = startScreen ? 'Начни своё путешествие' : track.title;
-  $('category').textContent = startScreen ? 'ДОБРО ПОЖАЛОВАТЬ' : track.category;
-  $('index').textContent = startScreen ? 'СТАРТ' : `0${state.index + 1} / 04`;
-  $('artnum').textContent = startScreen ? '↗' : `0${state.index + 1}`;
-  $('voice').textContent = startScreen ? 'Надень наушники и нажми ▶'
-    : state.ended ? (state.background ? 'Фон играет · сканируй следующий код' : 'Фон на паузе')
-    : `Голос 0${state.index + 1}${track.demo ? ' · Демо' : ''}`;
+  $('tracktitle').textContent = startScreen ? 'Мегабаттл' : track.title;
+  if ($('cover').dataset.index !== String(state.index)) {
+    $('cover').src = track.cover || 'covers/awake.jpg';
+    $('cover').alt = track.coverAlt || '';
+    $('cover').dataset.index = String(state.index);
+    document.body.style.setProperty('--cover-glow', `url("${track.cover || 'covers/awake.jpg'}")`);
+  }
   const active = ['playing', 'loading', 'background'].includes(state.status);
-  $('play').textContent = state.status === 'loading' ? '···' : active ? 'Ⅱ' : '▶';
+  document.body.dataset.playing = String(state.status === 'playing');
+  document.body.dataset.background = String(state.background);
+  $('play').dataset.state = state.status === 'loading' ? 'loading' : active ? 'playing' : 'paused';
+  $('seek').disabled = !state.duration;
+  if (!seeking) $('seek').value = state.duration ? state.position / state.duration * 100 : 0;
   $('play').setAttribute('aria-label', active ? 'Приостановить' : 'Начать прослушивание');
   $('play').setAttribute('aria-busy', String(state.status === 'loading'));
   $('status').textContent = state.message;
@@ -61,6 +68,23 @@ function choose(index, autoplay = player.isActive()) {
   }
 }
 $('play').onclick = () => player.isActive() ? player.pause() : begin();
+$('seek').addEventListener('input', () => { seeking = true; });
+$('seek').addEventListener('change', () => {
+  seeking = false;
+  const duration = player.voice?.duration;
+  if (!Number.isFinite(duration) || duration <= 0) return;
+  player.voice.currentTime = Number($('seek').value) / 100 * duration;
+  player.ended = false;
+  if (player.status === 'background') player.start();
+  else player.emit();
+});
+$('seek').addEventListener('blur', () => { seeking = false; });
+$('volume').addEventListener('input', event => {
+  const level = Number(event.target.value) / 100;
+  player.voice.volume = level;
+  player.bed.volume = 0.22 * level;
+  event.target.style.background = `linear-gradient(90deg,#c6e6ff ${level * 100}%,#b2d6ff25 ${level * 100}%)`;
+});
 $('next').onclick = () => choose((player.index + 1) % tracks.length);
 $('back').onclick = () => choose((player.index + tracks.length - 1) % tracks.length);
 setInterval(() => render(), 500);

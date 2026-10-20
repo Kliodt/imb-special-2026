@@ -1,1 +1,47 @@
-<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#001a31"><title>MEGA / Аудиогид</title><link rel="stylesheet" href="style.css"><body><main class="app"><header><span class="logo">ITMO<br>MEGA<br>BATTLE</span><span class="headerlabel">АУДИОГИД<br><b>ВЫСТАВКИ</b></span></header><div class="art" aria-hidden="true"><div class="orbit"></div><span class="star">✦</span><span class="arttext">ГОЛОСА<br>МЕГАБАТТЛА</span><span id="artnum">01</span></div><section class="track"><div class="trackmeta"><span id="category">ЗНАКОМСТВО</span><span id="index">01 / 04</span></div><h1 id="tracktitle">Всё начинается с идеи</h1><p id="voice">Голос 01 · Демо</p><div class="progress"><div id="bar"></div></div><div class="times"><span id="elapsed">0:00</span><span id="duration">ДЕМО</span></div><div class="controls"><button id="back" aria-label="Предыдущая история">↤</button><button id="play" aria-label="Начать прослушивание">▶</button><button id="next" aria-label="Следующая история">↦</button></div><p id="status" role="status" aria-live="polite"></p></section><div class="bottom"><button id="scan" class="primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M1 12h22"/></svg>Сканировать QR-код</button><p>Новый код — новый голос</p></div></main><dialog id="scanner"><div class="scannerhead"><span>СКАНЕР QR</span><button id="closeScanner" aria-label="Закрыть сканер">✕</button></div><h2>Наведи камеру<br>на код у экспоната</h2><div class="camerabox"><video id="camera" autoplay playsinline muted></video><div class="scanframe"><i></i></div></div><p id="cameraStatus" role="status">Включаем камеру…</p><button id="retry" class="secondary" hidden>Повторить</button><label class="photoButton secondary">Снять QR-код<input id="photo" type="file" accept="image/*" capture="environment" hidden></label><details><summary>Ввести номер точки</summary><div class="manualrow"><select id="manual" aria-label="Номер точки"><option value="1">Точка 01</option><option value="2">Точка 02</option><option value="3">Точка 03</option><option value="4">Точка 04</option></select><button id="manualGo" class="secondary">Слушать ↗</button></div></details></dialog><script src="jsqr.js"></script><script src="runtime.js"></script><script src="content.js"></script><script src="player.js"></script><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050f23">
+  <title>MEGA / Аудиогид</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient-light" aria-hidden="true"></div>
+  <main class="app">
+    <header>
+      <span class="logo">ITMO<br>MEGA<br>BATTLE</span><span class="header-title">Аудиогид</span>
+    </header>
+
+    <article class="player-card">
+      <div class="art"><img id="cover" src="covers/awake.jpg" alt="Обложка Tycho — Awake" width="600" height="600" decoding="async"></div>
+
+      <section class="track">
+        <div class="title-row"><h1 id="tracktitle">Всё начинается с идеи</h1><span class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
+        <div class="timeline"><div class="progress"><div id="bar"></div></div><input id="seek" type="range" min="0" max="100" value="0" step="0.1" aria-label="Позиция в аудиозаписи" disabled></div>
+        <div class="times"><span id="elapsed">0:00</span><span id="duration">—</span></div>
+        <div class="controls">
+          <button id="back" aria-label="Предыдущая история"><svg viewBox="0 0 24 24"><path d="M6 5v14M19 5v14L8 12Z"/></svg></button>
+          <button id="play" aria-label="Начать прослушивание" data-state="paused"><svg class="play-icon" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z"/></svg><svg class="pause-icon" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg><span class="loading-icon" aria-hidden="true"></span></button>
+          <button id="next" aria-label="Следующая история"><svg viewBox="0 0 24 24"><path d="M18 5v14M5 5v14l11-7Z"/></svg></button>
+        </div>
+        <div class="volume-row"><span class="ambient-caption"><i></i>Звуковой фон</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4ZM15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg><input id="volume" type="range" min="0" max="100" value="90" aria-label="Громкость"></div>
+        <p id="status" role="status" aria-live="polite"></p>
+      </section>
+    </article>
+
+    <div class="bottom"><button id="scan" class="primary"><span class="scan-icon"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M7 12h10"/></svg></span><span>Сканировать QR-код</span></button></div>
+  </main>
+
+  <dialog id="scanner">
+    <div class="scannerhead"><span>Сканировать QR-код</span><button id="closeScanner" aria-label="Закрыть сканер">✕</button></div>
+    <div class="camerabox"><video id="camera" autoplay playsinline muted></video><div class="scanframe"><i></i></div></div>
+    <p id="cameraStatus" role="status">Включаем камеру…</p>
+    <button id="retry" class="secondary" hidden>Повторить</button>
+    <label class="photoButton secondary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-3h4l2 3h4v13H4Z"/><circle cx="12" cy="13" r="4"/></svg>Снять QR-код<input id="photo" type="file" accept="image/*" capture="environment"></label>
+    <details><summary>Ввести номер точки</summary><div class="manualrow"><select id="manual" aria-label="Номер точки"><option value="1">Точка 01</option><option value="2">Точка 02</option><option value="3">Точка 03</option><option value="4">Точка 04</option></select><button id="manualGo" class="secondary">Слушать ↗</button></div></details>
+  </dialog>
+  <script src="jsqr.js"></script><script src="runtime.js"></script><script src="content.js"></script><script src="player.js"></script><script src="app.js"></script>
+</body>
+</html>
