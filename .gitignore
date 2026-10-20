@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+work/
+.openai/
+dist/qr/00-start.png
