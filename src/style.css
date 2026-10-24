@@ -1,14 +1,21 @@
 :root {
   --bg: #071223;
   --text: #f5f8ff;
-  --muted: #98abc5;
-  --accent: #c2e8ff;
+  --muted: #9fb3cd;
+  --sky: #b9dcff;
+  --blush: #ffcfe0;
   --focus: #a5dfff;
-  --glass-border: #d5e8ff35;
+
+  --pad: 16px;
+  --card-pad: 12px;
+  --card-radius: 28px;
+  --cover-radius: calc(var(--card-radius) - var(--card-pad));
 
   color-scheme: dark;
   font-family: 'Raleway Variable', Arial, sans-serif;
   font-synthesis: none;
+  /* Raleway defaults to old-style figures of uneven height. */
+  font-variant-numeric: lining-nums;
   color: var(--text);
   background: var(--bg);
 }
@@ -38,7 +45,7 @@ button {
   color: inherit;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, opacity 0.2s;
 }
 
 button:active {
@@ -53,14 +60,14 @@ button:disabled {
 
 :focus-visible {
   outline: 2px solid var(--focus);
-  outline-offset: 5px;
+  outline-offset: 4px;
 }
 
 svg {
   display: block;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.65;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -76,128 +83,225 @@ svg {
   pointer-events: none;
   background-position: center;
   background-size: cover;
-  filter: blur(100px) saturate(0.75);
-  opacity: 0.22;
+  filter: blur(100px) saturate(0.8);
+  opacity: 0.28;
   transition: background-image 0.8s;
 }
 
+/* Same inset from every screen edge; the card takes the remaining height. */
 .app {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  max-width: 450px;
+  gap: var(--pad);
+  max-width: 460px;
   min-height: 100svh;
-  margin: auto;
-  padding: max(24px, env(safe-area-inset-top)) 22px max(24px, env(safe-area-inset-bottom));
+  margin: 0 auto;
+  padding:
+    max(var(--pad), env(safe-area-inset-top))
+    max(var(--pad), env(safe-area-inset-right))
+    max(var(--pad), env(safe-area-inset-bottom))
+    max(var(--pad), env(safe-area-inset-left));
 }
-
-/* Header */
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  margin: 0 7px 22px;
+  padding: 0 4px;
 }
 
 .logo {
-  font: italic 900 20px/0.85 Arial, sans-serif;
-  letter-spacing: -1px;
+  font: italic 900 15px/1 Arial, sans-serif;
+  letter-spacing: -0.4px;
   color: #e7f0fc;
 }
 
 .header-title {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  color: #b9cce4;
+  color: var(--muted);
 }
 
-/* Glass card */
-
+/* The only glass surface; everything inside it is borderless. */
 .card {
-  position: relative;
-  border: 1px solid var(--glass-border);
-  border-radius: 31px;
-  background: linear-gradient(135deg, #eaf4ff1f, #c9ddff08 40%, #8bceff12);
-  box-shadow: 0 24px 75px #000a2545, inset 0 1px 0 #fff3, inset 0 -1px 0 #72c3ff0a;
-  backdrop-filter: blur(35px);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: var(--card-pad);
+  border: 1px solid #d5e8ff2e;
+  border-radius: var(--card-radius);
+  background: linear-gradient(160deg, #eaf4ff1c, #c9ddff08 45%, #8bceff10);
+  box-shadow: 0 24px 60px #00082a40, inset 0 1px #ffffff24;
+  backdrop-filter: blur(30px);
 }
 
-.card::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: 15%;
-  right: 15%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #d1f4ff80, transparent);
-}
-
-.card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 70%;
-  height: 35%;
-  border-radius: 0 30px 0 0;
-  background: linear-gradient(135deg, transparent 25%, #e8f6ff05 55%, transparent 80%);
-  pointer-events: none;
-}
+/* Cover, scan trigger and camera share one square. */
 
 .art {
   position: relative;
   isolation: isolate;
-  width: min(calc(100% - 32px), clamp(140px, calc(100svh - 455px), 360px));
   aspect-ratio: 1;
-  margin: 16px auto 0;
-  padding: 7px;
-  border: 1px solid #d9edff30;
-  border-radius: 24px;
-  background: linear-gradient(135deg, #e9f4ff28, #93b7e90a 45%, #bddbff1a);
-  box-shadow: 0 15px 33px #00091f45, inset 0 1px #fff3;
+  overflow: hidden;
+  border-radius: var(--cover-radius);
+  background: #0c2039;
+  box-shadow: 0 12px 32px #00091f50;
 }
 
-.art::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset: 10px 7px -6px;
-  border: 1px solid #c4e5ff16;
-  border-radius: 22px;
-  background: #a7cbff09;
-}
-
-.art img {
+.cover {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 17px;
-  box-shadow: 0 2px 12px #030b2429;
 }
 
-.track {
-  padding: 27px 23px 22px;
+/* The outgoing cover, faded out on top of the new one when the track changes. */
+.cover-previous {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.glass-button,
+.glass-pill,
+.scan-chip {
+  border: 0;
+  background: #0a1a3366;
+  box-shadow: inset 0 1px #ffffff2e, 0 6px 18px #00000040;
+  backdrop-filter: blur(16px) saturate(1.4);
+  color: #fff;
+}
+
+.scan-chip {
+  position: absolute;
+  right: var(--card-pad);
+  bottom: var(--card-pad);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 10px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.scan-chip svg {
+  width: 20px;
+  height: 20px;
+}
+
+.viewfinder {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, #17365d, #081426 70%);
+}
+
+.viewfinder video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Four rounded corner brackets: a full rounded border masked down to its corners. */
+.frame {
+  --arm: 36px;
+  position: absolute;
+  inset: 22%;
+  border: 3px solid var(--sky);
+  border-radius: 22px;
+  mask: conic-gradient(at var(--arm) var(--arm), #0000 75%, #000 0) 0 0 / calc(100% - var(--arm)) calc(100% - var(--arm));
+  animation: breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  50% { transform: scale(1.04); opacity: 0.7; }
+}
+
+.unavailable .frame {
+  display: none;
+}
+
+.viewfinder-close {
+  position: absolute;
+  top: var(--card-pad);
+  right: var(--card-pad);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.viewfinder-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.viewfinder-hint {
+  position: absolute;
+  right: var(--card-pad);
+  bottom: var(--card-pad);
+  left: var(--card-pad);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.glass-pill {
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.retry {
+  background: #eaf4ffe6;
+  color: #10223d;
+  font-weight: 600;
+}
+
+/* Track details fill the rest of the card; spare height on tall screens is shared evenly between the groups. */
+
+.details {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 12px;
+  padding: 12px 8px 4px;
 }
 
 .title-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 23px;
+  gap: 12px;
 }
 
-.title-row h1 {
+.titles {
   flex: 1;
+  min-width: 0;
+}
+
+.titles h1 {
   margin: 0;
-  font-size: 25px;
+  font-size: 22px;
   font-weight: 650;
-  line-height: 1.17;
-  letter-spacing: -0.8px;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
   text-wrap: balance;
+}
+
+.artist {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
 }
 
 .equalizer {
@@ -207,80 +311,94 @@ svg {
   gap: 2px;
   width: 18px;
   height: 18px;
-  color: #91bee3;
-  opacity: 0.7;
+  color: var(--muted);
+  opacity: 0.6;
+  transition: color 0.6s, opacity 0.6s;
 }
 
+/* Always animated, only paused when narration stops, so the bars freeze where they are. */
 .equalizer i {
   width: 2px;
   height: 5px;
   border-radius: 2px;
   background: currentColor;
+  animation: equalize 0.7s ease-in-out infinite alternate paused;
 }
 
-.equalizer i:nth-child(2) { height: 14px; }
-.equalizer i:nth-child(3) { height: 9px; }
-.equalizer i:nth-child(4) { height: 17px; }
+.equalizer i:nth-child(2) { height: 14px; animation-delay: -0.4s; }
+.equalizer i:nth-child(3) { height: 9px; animation-delay: -0.2s; }
+.equalizer i:nth-child(4) { height: 17px; animation-delay: -0.6s; }
 
 [data-speaking='true'] .equalizer {
-  color: var(--accent);
+  color: var(--sky);
   opacity: 1;
 }
 
 [data-speaking='true'] .equalizer i {
-  animation: equalize 0.7s ease-in-out infinite alternate;
+  animation-play-state: running;
 }
-
-[data-speaking='true'] .equalizer i:nth-child(2) { animation-delay: -0.4s; }
-[data-speaking='true'] .equalizer i:nth-child(3) { animation-delay: -0.2s; }
-[data-speaking='true'] .equalizer i:nth-child(4) { animation-delay: -0.6s; }
 
 @keyframes equalize {
   from { transform: scaleY(0.3); }
   to { transform: scaleY(1); }
 }
 
-/* Timeline: a visual bar with a transparent range input on top for seeking. */
+/*
+ * Progress: a straight rail with a dot; the morphing waves above the passed part are drawn by src/waves.js.
+ * A transparent range input lies on top of everything and handles seeking and dragging.
+ */
 
 .timeline {
+  --line-y: 30px;
   position: relative;
-  display: flex;
-  align-items: center;
-  height: 12px;
+  height: 40px;
 }
 
-.progress {
-  width: 100%;
-  height: 3px;
-  border-radius: 5px;
-  background: #c1ddff24;
-}
-
-.bar {
-  position: relative;
-  width: 0;
-  height: 100%;
-  border-radius: 5px;
-  background: linear-gradient(90deg, #91beed, #def3ff);
-  box-shadow: 0 0 10px #7dbfff30;
-}
-
-.bar::after {
-  content: '';
+.waves {
   position: absolute;
-  top: -2px;
-  right: -3px;
-  width: 7px;
-  height: 7px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--line-y);
+}
+
+.rail,
+.played {
+  position: absolute;
+  top: calc(var(--line-y) - 1.5px);
+  left: 0;
+  height: 3px;
+  border-radius: 3px;
+}
+
+.rail {
+  right: 0;
+  background: #c1ddff2e;
+}
+
+.played {
+  width: var(--progress, 0%);
+  background: linear-gradient(90deg, var(--sky), var(--blush));
+}
+
+.thumb {
+  position: absolute;
+  top: var(--line-y);
+  left: var(--progress, 0%);
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
   border-radius: 50%;
-  background: #e1f4ff;
+  background: #fff;
+  box-shadow: 0 0 0 4px #b9dcff2e, 0 0 14px #b9dcffa0;
 }
 
 .seek {
   position: absolute;
-  inset: -8px 0;
+  z-index: 1;
+  inset: 0;
   width: 100%;
-  height: 28px;
+  height: 100%;
   margin: 0;
   opacity: 0;
   cursor: pointer;
@@ -294,163 +412,95 @@ svg {
 .times {
   display: flex;
   justify-content: space-between;
-  margin-top: 3px;
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
+  margin-top: 6px;
+  font-size: 11px;
+  font-variant-numeric: lining-nums tabular-nums;
   color: var(--muted);
 }
-
-/* Transport controls */
 
 .controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 35px;
-  margin-top: 23px;
+  gap: 28px;
 }
 
-.round {
+.icon-button {
   display: grid;
   place-items: center;
-  width: 47px;
-  height: 47px;
-  border: 1px solid #cfe5ff27;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, #e2f2ff13, #acc9ff04);
-  box-shadow: inset 0 1px #ffffff0a;
-  color: #d7e7ff;
+  background: none;
+  color: #dbe8ff;
 }
 
-.round svg {
-  width: 18px;
-  height: 18px;
+/* Filled shapes with a same-colour round-joined stroke: polygons with rounded corners. */
+.rounded-icon {
   fill: currentColor;
-  stroke-width: 1.4;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.icon-button svg {
+  width: 34px;
+  height: 34px;
 }
 
 .play {
   position: relative;
-  width: 76px;
-  height: 76px;
-  border-color: #f2fcffb0;
-  background: linear-gradient(145deg, #f0faff, #b1d3fa);
-  box-shadow: 0 6px 28px #9ec8ff26, inset 0 2px 4px #fff, inset 0 -4px 7px #6593c24d;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f4fbff, #b9d8fb 70%, #f6d9e6);
+  box-shadow: 0 8px 28px #9ec8ff33, inset 0 2px 4px #fff, inset 0 -4px 8px #6593c240;
   color: #10223d;
 }
 
-.play::before {
+.play-icon {
+  width: 38px;
+  height: 38px;
+  transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.play-icon.rotated {
+  transform: rotate(90deg);
+}
+
+/* Loading: a ring spins around the button, the icon already shows pause. */
+.play::after {
   content: '';
   position: absolute;
-  inset: -7px;
-  border: 1px solid #b6deff16;
+  inset: -6px;
+  border: 2px solid transparent;
+  border-top-color: var(--sky);
   border-radius: 50%;
-  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  animation: spin 0.9s linear infinite paused;
 }
 
-.play svg {
-  width: 26px;
-  height: 26px;
-  stroke-width: 2.5;
+.play[data-state='loading']::after {
+  opacity: 1;
+  animation-play-state: running;
 }
-
-.play-icon {
-  margin-left: 1px;
-  stroke: none;
-}
-
-.play .pause-icon {
-  display: none;
-  fill: none;
-}
-
-.loading-icon {
-  display: none;
-  width: 22px;
-  height: 22px;
-  border: 2px solid #10223d30;
-  border-top-color: #10223d;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.play:not([data-state='paused']) .play-icon { display: none; }
-.play[data-state='playing'] .pause-icon { display: block; }
-.play[data-state='loading'] .loading-icon { display: block; }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Volume */
-
-.volume-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 25px;
-  padding-top: 17px;
-  border-top: 1px solid #c9e2ff13;
-}
-
-.volume-row > svg {
-  width: 15px;
-  height: 15px;
-  color: #9cb5d4;
-}
-
-.ambient-caption {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-right: auto;
-  font-size: 10px;
-  color: #92abc9;
-}
-
-.ambient-caption i {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #7b90aa;
-}
-
-[data-ambient='true'] .ambient-caption i {
-  background: #a3d8d5;
-  box-shadow: 0 0 7px #76c9c650;
-}
-
-.volume {
-  width: 74px;
-  height: 2px;
-  margin: 0;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #c6e6ff var(--level), #b2d6ff25 0);
-  cursor: pointer;
-  appearance: none;
-}
-
-.volume::-webkit-slider-thumb {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #d6eaff;
-  appearance: none;
-}
-
-.volume::-moz-range-thumb {
-  width: 7px;
-  height: 7px;
-  border: 0;
-  border-radius: 50%;
-  background: #d6eaff;
-}
-
 .status {
-  margin: 16px 0 0;
-  font-size: 11px;
-  line-height: 1.6;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
   color: #b8d2ed;
 }
 
@@ -458,197 +508,17 @@ svg {
   display: none;
 }
 
-/* Scan button */
-
-.scan-button {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  min-height: 68px;
-  margin-top: 18px;
-  padding: 14px 17px;
-  border: 1px solid #b7dfff35;
-  border-radius: 21px;
-  background: linear-gradient(120deg, #9dc8ff20, #87cfff0a 55%, #2675ce1a);
-  box-shadow: inset 0 1px #f5fbff20, 0 9px 30px #000c3020;
-  backdrop-filter: blur(25px);
-  color: #edf5ff;
-  font-size: 13px;
-  font-weight: 600;
+@media (min-width: 480px) {
+  :root { --pad: 24px; }
 }
 
-.scan-button:hover {
-  background: linear-gradient(120deg, #7db7ff30, #87cfff12 50%, #2675ce25);
-}
-
-.scan-icon {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid #d1eaff20;
-  border-radius: 11px;
-  background: #e8f5ff08;
-  color: #c9e4fb;
-}
-
-.scan-icon svg {
-  width: 21px;
-  height: 21px;
-}
-
-/* Scanner dialog */
-
-.scanner {
-  width: 100%;
-  max-width: 450px;
-  height: 100%;
-  max-height: 100dvh;
-  padding: max(23px, env(safe-area-inset-top)) 23px max(24px, env(safe-area-inset-bottom));
-  border: 1px solid #cce5ff28;
-  background: radial-gradient(ellipse at 70% 15%, #17365d, #0a1729 55%);
-  box-shadow: 0 30px 100px #0008;
-  color: #f4f8ff;
-}
-
-.scanner::backdrop {
-  background: #030b1bc9;
-  backdrop-filter: blur(18px);
-}
-
-.scanner-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 27px;
-  font-size: 16px;
-}
-
-.close {
-  width: 42px;
-  height: 42px;
-  border: 1px solid #c4e1ff24;
-  border-radius: 50%;
-  background: #d9efff08;
-  color: #cce6ff;
-  font-size: 17px;
-}
-
-.camera-box {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-  border: 1px solid #c0e6ff30;
-  border-radius: 25px;
-  background: linear-gradient(145deg, #173f6830, #030e1d80);
-  box-shadow: inset 0 1px #fff1, 0 15px 50px #0003;
-}
-
-.camera-box video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.scan-frame {
-  position: absolute;
-  inset: 15%;
-  overflow: hidden;
-  border: 1.5px solid #b5e4ffb0;
-  border-radius: 20px;
-  box-shadow: 0 0 0 100px #020c2450;
-}
-
-/* The <i> spans the sweep range and moves via transform; the line itself is its top edge. */
-.scan-frame i {
-  position: absolute;
-  top: 5%;
-  left: 0;
-  right: 0;
-  height: 90%;
-  animation: sweep 2.4s ease-in-out infinite;
-}
-
-.scan-frame i::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: #9ceaff;
-  box-shadow: 0 0 18px 3px #56cfff60;
-}
-
-@keyframes sweep {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(100%); }
-}
-
-.camera-unavailable .camera-box {
-  aspect-ratio: 1.7;
-}
-
-.camera-unavailable .scan-frame i {
-  display: none;
-}
-
-.camera-status {
-  min-height: 36px;
-  margin: 20px 0;
-  font-size: 12px;
-  line-height: 1.7;
-  text-align: center;
-  color: #a4bdd6;
-}
-
-.secondary {
-  width: 100%;
-  min-height: 49px;
-  padding: 12px 16px;
-  border: 1px solid #c8e4ff24;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #a3d6ff13, #a3d6ff05);
-  box-shadow: inset 0 1px #fff08;
-  color: #dcefff;
-  font-size: 12px;
-}
-
-/* Short phones */
-
-@media (max-height: 750px) {
-  .app { padding-top: 18px; padding-bottom: 18px; }
-  .header { margin-bottom: 18px; }
-  .logo { font-size: 18px; }
-  .header-title { font-size: 11px; }
-  .track { padding: 23px 20px 21px; }
-  .title-row { margin-bottom: 20px; }
-  .title-row h1 { font-size: 23px; }
-  .controls { gap: 30px; margin-top: 19px; }
-  .play { width: 66px; height: 66px; }
-  .volume-row { margin-top: 21px; padding-top: 14px; }
-  .scan-button { min-height: 62px; margin-top: 15px; }
-}
-
-@media (max-height: 640px) {
-  .app { padding: 16px 18px; }
-  .header { margin-bottom: 15px; }
-  .logo { font-size: 16px; }
-  .card { border-radius: 25px; }
-  .art { margin-top: 14px; padding: 5px; border-radius: 18px; }
-  .art::before { bottom: -4px; border-radius: 15px; }
-  .art img { border-radius: 12px; }
-  .track { padding: 20px 18px; }
-  .title-row { margin-bottom: 18px; }
-  .title-row h1 { font-size: 21px; }
-  .equalizer { width: 15px; }
-  .controls { margin-top: 18px; }
-  .round { width: 42px; height: 42px; }
-  .play { width: 60px; height: 60px; }
-  .volume-row { display: none; }
-  .scan-button { min-height: 60px; padding: 12px 15px; border-radius: 18px; }
+/* Short phones: the cover keeps its size, the details get tighter. */
+@media (max-height: 600px) {
+  .details { gap: 8px; padding: 8px 8px 0; }
+  .titles h1 { font-size: 20px; }
+  .artist { margin-top: 2px; font-size: 13px; }
+  .play { width: 72px; height: 72px; }
+  .timeline { --line-y: 24px; height: 32px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -660,7 +530,9 @@ svg {
   }
 }
 
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+@supports not (backdrop-filter: blur(1px)) {
   .card { background: #162a43; }
-  .scan-button { background: #1a3350; }
+  .glass-button,
+  .glass-pill,
+  .scan-chip { background: #0a1a33d9; }
 }

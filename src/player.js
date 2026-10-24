@@ -21,6 +21,7 @@ export class Player {
     this.#bed = new Audio(ambient);
     this.#bed.loop = true;
     this.#bed.preload = 'auto';
+    this.#bed.volume = BED_VOLUME;
 
     for (const type of ['play', 'pause', 'playing', 'waiting', 'canplay', 'timeupdate', 'durationchange']) {
       this.#voice.addEventListener(type, () => this.#emit());
@@ -49,10 +50,6 @@ export class Player {
 
   get speaking() {
     return !this.#voice.paused && !this.loading;
-  }
-
-  get ambientPlaying() {
-    return !this.#bed.paused;
   }
 
   get position() {
@@ -92,12 +89,7 @@ export class Player {
   seek(fraction) {
     if (!this.duration) return;
     this.#voice.currentTime = fraction * this.duration;
-    if (this.ambientPlaying && this.#voice.paused) this.#playVoice();
-  }
-
-  setVolume(level) {
-    this.#voice.volume = level;
-    this.#bed.volume = BED_VOLUME * level;
+    if (!this.#bed.paused && this.#voice.paused) this.#playVoice();
   }
 
   #playVoice() {

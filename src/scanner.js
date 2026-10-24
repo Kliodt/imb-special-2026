@@ -6,12 +6,12 @@ const CAMERA = { video: { facingMode: { ideal: 'environment' } }, audio: false }
 
 const Status = Object.freeze({
   REQUESTING: 'Разреши доступ к камере',
-  AIMING: 'Помести QR-код в рамку',
-  FOREIGN: 'Это не код выставки. Наведи на другой QR.',
-  INSECURE: 'Камера в браузере работает только по HTTPS.',
-  DENIED: 'Камера не разрешена. Разреши её в настройках браузера.',
-  NOT_FOUND: 'Камера не найдена.',
-  FAILED: 'Камера недоступна. Попробуй ещё раз.',
+  AIMING: 'Наведи на QR-код у экспоната',
+  FOREIGN: 'Это не код выставки',
+  INSECURE: 'Камера в браузере работает только по HTTPS',
+  DENIED: 'Доступ к камере запрещён в настройках браузера',
+  NOT_FOUND: 'Камера не найдена',
+  FAILED: 'Камера недоступна',
 });
 
 const errorStatus = { NotAllowedError: Status.DENIED, NotFoundError: Status.NOT_FOUND };
@@ -40,41 +40,63 @@ function getDetector() {
   return detectorPromise;
 }
 
+/** Camera viewfinder that lives inside the cover square. */
 export class Scanner {
-  #dialog;
+  #trigger;
+  #viewfinder;
   #video;
   #status;
   #retry;
+  #closeButton;
   #onCode;
   #stream = null;
   #timer = 0;
+  #isOpen = false;
   // Bumped on every stop so that stale async camera starts and scan loops bail out.
   #session = 0;
 
   /** @param {{ onCode: (text: string) => boolean }} options onCode returns true when the code is accepted. */
-  constructor({ dialog, video, status, retry, onCode }) {
-    this.#dialog = dialog;
+  constructor({ trigger, viewfinder, video, status, retry, closeButton, onCode }) {
+    this.#trigger = trigger;
+    this.#viewfinder = viewfinder;
     this.#video = video;
     this.#status = status;
     this.#retry = retry;
+    this.#closeButton = closeButton;
     this.#onCode = onCode;
-    dialog.addEventListener('close', () => this.#stopCamera());
+    trigger.addEventListener('click', () => this.open());
+    closeButton.addEventListener('click', () => this.close());
     retry.addEventListener('click', () => this.#startCamera());
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') this.close();
+    });
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) dialog.close();
+      if (document.hidden) this.close();
     });
   }
 
   open() {
-    this.#dialog.showModal();
+    if (this.#isOpen) return;
+    this.#isOpen = true;
+    this.#viewfinder.hidden = false;
+    this.#closeButton.focus();
     this.#startCamera();
+  }
+
+  close() {
+    if (!this.#isOpen) return;
+    this.#isOpen = false;
+    const hadFocus = this.#viewfinder.contains(document.activeElement);
+    this.#viewfinder.hidden = true;
+    this.#stopCamera();
+    if (hadFocus) this.#trigger.focus();
   }
 
   async #startCamera() {
     this.#stopCamera();
     const session = this.#session;
     this.#retry.hidden = true;
-    this.#dialog.classList.remove('camera-unavailable');
+    this.#viewfinder.classList.remove('unavailable');
     this.#status.textContent = Status.REQUESTING;
     if (!navigator.mediaDevices?.getUserMedia) {
       this.#fail(Status.INSECURE, false);
@@ -107,7 +129,7 @@ export class Scanner {
       const [code] = await detector.detect(this.#video).catch(() => []);
       if (session !== this.#session) return;
       if (code && this.#onCode(code.rawValue)) {
-        this.#dialog.close();
+        this.close();
         return;
       }
       if (code) this.#status.textContent = Status.FOREIGN;
@@ -127,6 +149,6 @@ export class Scanner {
   #fail(status, canRetry) {
     this.#status.textContent = status;
     this.#retry.hidden = !canRetry;
-    this.#dialog.classList.add('camera-unavailable');
+    this.#viewfinder.classList.add('unavailable');
   }
 }

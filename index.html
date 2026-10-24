@@ -12,66 +12,70 @@
 
   <main class="app">
     <header class="header">
-      <span class="logo">ITMO<br>MEGA<br>BATTLE</span>
+      <span class="logo">ITMO MEGABATTLE</span>
       <span class="header-title">Аудиогид</span>
     </header>
 
     <article class="card">
-      <div class="art"><img id="cover" alt="" width="600" height="600" decoding="async"></div>
+      <div class="art">
+        <img id="cover" class="cover" alt="" width="800" height="800" decoding="async">
+        <img id="cover-previous" class="cover cover-previous" alt="" aria-hidden="true">
 
-      <section class="track">
+        <button id="scan" class="scan-chip" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3M7 12h10"/></svg>
+          Сканировать QR
+        </button>
+
+        <section id="viewfinder" class="viewfinder" aria-label="Сканер QR-кода" hidden>
+          <video id="camera" autoplay playsinline muted></video>
+          <div class="frame" aria-hidden="true"></div>
+          <button id="close-scanner" class="glass-button viewfinder-close" aria-label="Закрыть сканер">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+          <div class="viewfinder-hint">
+            <p id="camera-status" class="glass-pill" role="status"></p>
+            <button id="retry" class="glass-pill retry" hidden>Повторить</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="details">
         <div class="title-row">
-          <h1 id="title"></h1>
+          <div id="titles" class="titles">
+            <h1 id="title"></h1>
+            <p id="artist" class="artist"></p>
+          </div>
           <span class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         </div>
 
-        <div class="timeline">
-          <div class="progress"><div id="bar" class="bar"></div></div>
-          <input id="seek" class="seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Позиция в записи" disabled>
+        <div>
+          <div id="timeline" class="timeline">
+            <canvas id="waves" class="waves" aria-hidden="true"></canvas>
+            <div class="rail"></div>
+            <div class="played"></div>
+            <span class="thumb" aria-hidden="true"></span>
+            <input id="seek" class="seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Позиция в записи" disabled>
+          </div>
+          <div class="times"><span id="elapsed">0:00</span><span id="duration">—</span></div>
         </div>
-        <div class="times"><span id="elapsed">0:00</span><span id="duration">—</span></div>
 
         <div class="controls">
-          <button id="back" class="round" aria-label="Предыдущая история" disabled>
-            <svg viewBox="0 0 24 24"><path d="M6 5v14M19 5v14L8 12Z"/></svg>
+          <button id="back" class="icon-button" aria-label="Предыдущая история" disabled>
+            <svg class="rounded-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M23.5,9.5 L12.5,16 23.5,22.5Z M8.5,9 V23"/></svg>
           </button>
-          <button id="play" class="round play" aria-label="Слушать" data-state="paused" disabled>
-            <svg class="play-icon" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z"/></svg>
-            <svg class="pause-icon" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>
-            <span class="loading-icon" aria-hidden="true"></span>
+          <button id="play" class="play" aria-label="Слушать" data-state="paused" disabled>
+            <svg id="play-icon" class="rounded-icon play-icon" viewBox="0 0 32 32" aria-hidden="true">
+              <path><animate attributeName="d" dur="0.6s" begin="indefinite" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.19 1 0.22 1"/></path>
+            </svg>
           </button>
-          <button id="next" class="round" aria-label="Следующая история" disabled>
-            <svg viewBox="0 0 24 24"><path d="M18 5v14M5 5v14l11-7Z"/></svg>
+          <button id="next" class="icon-button" aria-label="Следующая история" disabled>
+            <svg class="rounded-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M8.5,9.5 L19.5,16 8.5,22.5Z M23.5,9 V23"/></svg>
           </button>
-        </div>
-
-        <div class="volume-row">
-          <span class="ambient-caption"><i></i>Звуковой фон</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4ZM15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg>
-          <input id="volume" class="volume" type="range" min="0" max="100" value="90" aria-label="Громкость">
         </div>
 
         <p id="status" class="status" role="status" aria-live="polite"></p>
       </section>
     </article>
-
-    <button id="scan" class="scan-button" disabled>
-      <span class="scan-icon"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M7 12h10"/></svg></span>
-      Сканировать QR-код
-    </button>
   </main>
-
-  <dialog id="scanner" class="scanner">
-    <form method="dialog" class="scanner-head">
-      <span>Сканировать QR-код</span>
-      <button class="close" aria-label="Закрыть сканер">✕</button>
-    </form>
-    <div class="camera-box">
-      <video id="camera" autoplay playsinline muted></video>
-      <div class="scan-frame"><i></i></div>
-    </div>
-    <p id="camera-status" class="camera-status" role="status"></p>
-    <button id="retry" class="secondary" hidden>Повторить</button>
-  </dialog>
 </body>
 </html>

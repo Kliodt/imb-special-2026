@@ -1,26 +1,33 @@
 import '@fontsource-variable/raleway';
 import './style.css';
+import { PlayIcon } from './play-icon.js';
 import { Player, Problem } from './player.js';
 import { Scanner } from './scanner.js';
 import { trackIdFrom, trackLink } from './track-link.js';
+import { Waves } from './waves.js';
 
 const coverGlow = document.getElementById('cover-glow');
 const coverImage = document.getElementById('cover');
+const previousCoverImage = document.getElementById('cover-previous');
+const scanButton = document.getElementById('scan');
+const viewfinder = document.getElementById('viewfinder');
+const cameraVideo = document.getElementById('camera');
+const cameraStatusText = document.getElementById('camera-status');
+const retryButton = document.getElementById('retry');
+const closeScannerButton = document.getElementById('close-scanner');
+const titlesBlock = document.getElementById('titles');
 const titleHeading = document.getElementById('title');
-const progressBar = document.getElementById('bar');
+const artistText = document.getElementById('artist');
+const timeline = document.getElementById('timeline');
+const wavesCanvas = document.getElementById('waves');
 const seekInput = document.getElementById('seek');
 const elapsedLabel = document.getElementById('elapsed');
 const durationLabel = document.getElementById('duration');
 const backButton = document.getElementById('back');
 const playButton = document.getElementById('play');
+const playIconSvg = document.getElementById('play-icon');
 const nextButton = document.getElementById('next');
-const volumeInput = document.getElementById('volume');
 const statusText = document.getElementById('status');
-const scanButton = document.getElementById('scan');
-const scannerDialog = document.getElementById('scanner');
-const cameraVideo = document.getElementById('camera');
-const cameraStatusText = document.getElementById('camera-status');
-const retryButton = document.getElementById('retry');
 
 const problemText = {
   [Problem.NONE]: '',
@@ -62,27 +69,56 @@ function formatTime(seconds) {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
 }
 
+// Progress jumps larger than this (a tap on the line, a track switch) glide instead of snapping;
+// smaller steps (normal playback) and dragging are applied as is.
+const GLIDE_THRESHOLD = 0.02;
+const GLIDE_MS = 120;
+
 let current = 0;
 let seeking = false;
+let dragging = false;
+let progressFrame = 0;
+let shownProgress = 0;
+let gliding = false;
+let lastProgressFrame = 0;
 const preloaded = new Map();
 const preloadedUrl = path => preloaded.get(path) ?? path;
 
 const player = new Player({ ambient: config.ambient, onChange: render });
-const scanner = new Scanner({
-  dialog: scannerDialog,
+const waves = new Waves(wavesCanvas);
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const playIcon = new PlayIcon(playIconSvg);
+new Scanner({
+  trigger: scanButton,
+  viewfinder,
   video: cameraVideo,
   status: cameraStatusText,
   retry: retryButton,
+  closeButton: closeScannerButton,
   onCode: acceptCode,
 });
+
+// The old cover fades out over the new one and the new title rises in, so a switch never jumps.
+function animateTrackChange(previousCover) {
+  if (reducedMotion.matches) return;
+  previousCoverImage.src = previousCover;
+  previousCoverImage.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: 'ease-in-out' });
+  titlesBlock.animate(
+    [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
+    { duration: 600, easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)' },
+  );
+}
 
 function showTrack(index, autoplay) {
   current = index;
   const track = tracks[index];
   const cover = preloadedUrl(track.cover);
+  const previousCover = coverImage.getAttribute('src');
   coverImage.src = cover;
   coverGlow.style.backgroundImage = `url("${cover}")`;
   titleHeading.textContent = track.title;
+  artistText.textContent = track.artist;
+  if (previousCover) animateTrackChange(previousCover);
   history.replaceState(null, '', trackLink(location.href, track.id));
   if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -130,27 +166,47 @@ function playButtonState() {
   return 'paused';
 }
 
-function render() {
+/** Updates the dot and the time label; returns the progress actually shown, which may still be gliding. */
+function renderProgress(now) {
   const { duration, position } = player;
   let progress = duration ? position / duration : 0;
   if (seeking) progress = seekInput.valueAsNumber / 100;
   else seekInput.value = String(progress * 100);
+  progress = Math.min(progress, 1);
 
-  seekInput.disabled = !duration;
-  progressBar.style.width = `${Math.min(progress, 1) * 100}%`;
-  elapsedLabel.textContent = formatTime(progress * duration);
-  durationLabel.textContent = duration ? formatTime(duration) : '—';
+  const elapsedMs = Math.min(now - lastProgressFrame, 50);
+  lastProgressFrame = now;
+  if (dragging) gliding = false;
+  else if (Math.abs(progress - shownProgress) > GLIDE_THRESHOLD) gliding = true;
+  if (gliding && !reducedMotion.matches) shownProgress += (progress - shownProgress) * Math.min(1, elapsedMs / GLIDE_MS);
+  else shownProgress = progress;
+  if (Math.abs(progress - shownProgress) < 0.002) {
+    shownProgress = progress;
+    gliding = false;
+  }
+
+  timeline.style.setProperty('--progress', `${shownProgress * 100}%`);
+  const elapsed = formatTime(progress * duration);
+  if (elapsedLabel.textContent !== elapsed) elapsedLabel.textContent = elapsed;
+  return shownProgress;
+}
+
+// `timeupdate` fires only about 4 times a second, so the dot and the waves are drawn every frame while
+// narration plays, while the dot glides to a new position and until the waves have settled after a pause.
+function followProgress(now) {
+  const settling = waves.render(renderProgress(now), player.speaking, now);
+  progressFrame = player.speaking || settling || gliding ? requestAnimationFrame(followProgress) : 0;
+}
+
+function render() {
+  seekInput.disabled = !player.duration;
+  durationLabel.textContent = player.duration ? formatTime(player.duration) : '—';
   playButton.dataset.state = playButtonState();
+  playIcon.showPause(player.playing);
   playButton.setAttribute('aria-label', player.playing ? 'Пауза' : 'Слушать');
   statusText.textContent = problemText[player.problem];
   document.body.dataset.speaking = String(player.speaking);
-  document.body.dataset.ambient = String(player.ambientPlaying);
-}
-
-function applyVolume() {
-  const level = volumeInput.valueAsNumber;
-  player.setVolume(level / 100);
-  volumeInput.style.setProperty('--level', `${level}%`);
+  if (!progressFrame) progressFrame = requestAnimationFrame(followProgress);
 }
 
 playButton.addEventListener('click', () => player.toggle());
@@ -162,10 +218,16 @@ seekInput.addEventListener('input', () => {
 });
 seekInput.addEventListener('change', () => {
   seeking = false;
+  dragging = false;
   player.seek(seekInput.valueAsNumber / 100);
 });
-volumeInput.addEventListener('input', applyVolume);
-scanButton.addEventListener('click', () => scanner.open());
+// A press that moves is a drag: the dot follows the finger directly. A plain tap glides.
+seekInput.addEventListener('pointerdown', () => {
+  dragging = false;
+});
+seekInput.addEventListener('pointermove', event => {
+  if (event.buttons) dragging = true;
+});
 
 if ('mediaSession' in navigator) {
   const handlers = {
@@ -183,7 +245,6 @@ if ('mediaSession' in navigator) {
   }
 }
 
-applyVolume();
 for (const button of [backButton, playButton, nextButton, scanButton]) button.disabled = false;
 showTrack(Math.max(0, findTrack(location.href)), false);
 preloadMedia();
