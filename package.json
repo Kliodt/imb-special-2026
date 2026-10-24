@@ -1,13 +1,24 @@
 {
-  "name": "mega-exhibition-audioguide",
+  "name": "mega-audioguide",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "node server.mjs",
-    "test": "node --test tests/player.test.cjs"
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "qr": "node scripts/qr.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": "^20.19.0 || >=22.12.0"
   },
-  "description": "Мобильный аудиогид ITMO MEGA BATTLE со встроенным QR-сканером"
+  "description": "Мобильный аудиогид ITMO MEGA BATTLE со встроенным QR-сканером",
+  "dependencies": {
+    "@fontsource-variable/raleway": "^5.3.0",
+    "barcode-detector": "^3.2.3"
+  },
+  "devDependencies": {
+    "qrcode": "^1.5.4",
+    "vite": "^8.3.5"
+  }
 }
