@@ -1,0 +1,38 @@
+services:
+  guide:
+    build: .
+    restart: unless-stopped
+    volumes:
+      # Content is served straight from public/ on the server: edit config.json, audio, covers, qr
+      # and the change is live at once, no rebuild. Read-only for the container.
+      - ./public:/srv/content:ro
+    # Outside traffic goes through Caddy only; this port is for checks from the server itself
+    # and for the host-nginx variant (deploy/nginx.conf).
+    ports:
+      - '127.0.0.1:${GUIDE_HOST_PORT:-3300}:8080'
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8080/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates survive container re-creation: Let's Encrypt rate-limits repeated issuance.
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      GUIDE_DOMAIN: ${GUIDE_DOMAIN:?укажите домен в .env}
+    depends_on:
+      - guide
+
+volumes:
+  caddy_data:
+  caddy_config:

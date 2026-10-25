@@ -1,0 +1,13 @@
+# Caddy gets and renews the Let's Encrypt certificate itself and redirects http → https.
+# The domain comes from GUIDE_DOMAIN in .env next to docker-compose.yml.
+
+{$GUIDE_DOMAIN} {
+	# Compresses JS, CSS, JSON and the scanner's WebAssembly; audio and images are left as is.
+	encode zstd gzip
+
+	# HSTS: uncomment once the domain is confirmed to work over https.
+	# The header forbids browsers to use plain http for this domain for a year.
+	# header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+	reverse_proxy guide:8080
+}

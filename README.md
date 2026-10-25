@@ -19,7 +19,7 @@ npm run preview    # просмотр сборки
 
 ```json
 {
-  "siteUrl": "https://guide.example.org",
+  "siteUrl": "https://imb-special.ru",
   "ambient": "audio/ambient.wav",
   "ambientVolume": 0.22,
   "tracks": [
@@ -49,6 +49,43 @@ npm run preview    # просмотр сборки
 ## QR-коды
 
 `npm run qr` генерирует PNG для всех треков по адресу `siteUrl` и предупреждает об отсутствующих аудио и обложках. Встроенный сканер принимает только ссылки с адреса `siteUrl` или с текущего адреса страницы.
+
+## Деплой под https (imb-special.ru)
+
+Два контейнера в `docker-compose.yml`:
+- `guide` — nginx без root-прав, раздаёт собранный сайт. Слушает только `127.0.0.1:3300`, снаружи по голому http его не достать.
+- `caddy` — сам получает и продлевает сертификат Let's Encrypt, редиректит http → https, сжимает JS/CSS/JSON и WebAssembly сканера (947 → 424 КБ).
+
+Папка `public/` подключена в контейнер с сервера. Правки `config.json`, аудио, обложек и QR видны сразу, без пересборки образа. Пересобирать нужно только после изменений в коде (`src/`, `index.html`).
+
+1. Направить A-запись `imb-special.ru` на сервер. Открыть на фаерволе 80 и 443.
+2. Поднять приложение:
+
+   ```bash
+   git clone <repo> audioguide && cd audioguide
+   cp .env.example .env              # GUIDE_DOMAIN=imb-special.ru
+   docker compose up -d --build
+   curl -s localhost:3300/health     # ok
+   ```
+
+3. Проверить `https://imb-special.ru`. Сертификат выпускается при первом запуске, это занимает несколько секунд. После проверки можно включить HSTS: раскомментировать строку в `deploy/Caddyfile` и выполнить `docker compose restart caddy`.
+
+`siteUrl` в `public/config.json` должен совпадать с доменом: из него строятся QR-коды. Сейчас там `https://imb-special.ru`, коды в `public/qr/` сгенерированы под него. Если домен поменяется, исправьте `siteUrl` и выполните `npm run qr`, а напечатанные коды перепечатайте.
+
+**Если на сервере уже есть nginx на 80/443**, Caddy не нужен. Запустите только приложение командой `docker compose up -d --build guide`. Затем выпустите сертификат командой `certbot --nginx -d imb-special.ru` и подключите `deploy/nginx.conf` в `sites-enabled`.
+
+Логи и состояние:
+
+```bash
+docker compose ps                 # healthcheck раз в 30 секунд ходит в /health
+docker compose logs -f caddy      # выпуск сертификата и ошибки TLS
+docker compose logs -f guide      # запросы к файлам
+```
+
+Как отдаётся контент:
+- файлы сборки (`/assets/*`, в имени хеш) кэшируются навсегда;
+- `config.json`, аудио, обложки и QR каждый раз сверяются с сервером по ETag: правки доходят до посетителей сразу, а неизменённые файлы отвечают коротким 304;
+- аудио отдаётся частями (HTTP Range) — без этого не работает перемотка в Safari.
 
 ## Материалы
 

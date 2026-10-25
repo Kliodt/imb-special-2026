@@ -15,6 +15,8 @@ npm run preview
 npm run qr        # regenerate public/qr/*.png from public/config.json
 ```
 
+Production: `docker compose up -d --build` (needs `.env` with `GUIDE_DOMAIN`, see `.env.example`; domain imb-special.ru). `guide` = `nginxinc/nginx-unprivileged` serving `dist/` with `deploy/static.conf`; `public/` is bind-mounted read-only to `/srv/content` and served first, so content edits on the server need no rebuild; `/assets/*` immutable, everything else `no-cache` (ETag); `/health` for the healthcheck. `caddy` terminates TLS (`deploy/Caddyfile`, Let's Encrypt, zstd/gzip incl. wasm); `deploy/nginx.conf` is the host-nginx alternative to the Caddy service.
+
 No automated tests. The live camera scanner needs a secure context (HTTPS or localhost).
 
 ## Architecture
