@@ -1,10 +1,12 @@
 :root {
-  --bg: #071223;
-  --text: #f5f8ff;
-  --muted: #9fb3cd;
-  --sky: #b9dcff;
-  --blush: #ffcfe0;
-  --focus: #a5dfff;
+  /* Brand palette, lifted a little */
+  --bg: #07112e;
+  --border: #d5e8ff40;
+  --text: #f2f5fc;
+  --muted: #a6b4cf;
+  --primary: #1f5fff;
+  --primary-light: #8fb2ff;
+  --focus: #8fb2ff;
 
   --pad: 16px;
   --card-pad: 12px;
@@ -29,10 +31,70 @@
 body {
   margin: 0;
   min-width: 280px;
+}
+
+/* Blue glow from the corners over an almost black centre, as in the brand layouts. */
+body::before {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  inset: 0;
   background:
-    radial-gradient(ellipse at 70% 12%, #243b6260, transparent 60%),
-    radial-gradient(ellipse at 8% 90%, #0b334a70, transparent 60%),
-    var(--bg);
+    radial-gradient(70% 55% at 8% 4%, #1f4fd9cc, transparent 60%),
+    radial-gradient(75% 60% at 92% 100%, #2457e0d9, transparent 62%),
+    radial-gradient(60% 50% at 95% 10%, #163c9fb3, transparent 60%),
+    linear-gradient(160deg, #0c2468 0%, #081640 45%, #0e2b80 100%);
+}
+
+.decor {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.decor-front {
+  z-index: 2;
+}
+
+/* Corner bundles are pinned to the screen edges and fade towards the centre. */
+.contour {
+  position: absolute;
+  width: clamp(260px, 44vw, 580px);
+  height: clamp(260px, 44vw, 580px);
+  fill: none;
+  stroke: #e2eaff66;
+  stroke-width: 1.4;
+}
+
+.contour-top-right {
+  top: 0;
+  right: 0;
+  mask-image: radial-gradient(circle at 100% 0%, #000 35%, transparent 78%);
+}
+
+.contour-bottom-left {
+  bottom: 0;
+  left: 0;
+  mask-image: radial-gradient(circle at 0% 100%, #000 35%, transparent 78%);
+}
+
+.sparkle {
+  position: absolute;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+}
+
+.sparkle-rays {
+  fill: #fff;
+  stroke: none;
+  filter: drop-shadow(0 0 12px #5a96fff2);
+}
+
+.sparkle-core {
+  fill: var(--primary);
+  stroke: none;
 }
 
 button,
@@ -84,7 +146,7 @@ svg {
   background-position: center;
   background-size: cover;
   filter: blur(100px) saturate(0.8);
-  opacity: 0.28;
+  opacity: 0.18;
   transition: background-image 0.8s;
 }
 
@@ -107,7 +169,7 @@ svg {
 
 .header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   padding: 0 4px;
 }
@@ -115,7 +177,7 @@ svg {
 .logo {
   font: italic 900 15px/1 Arial, sans-serif;
   letter-spacing: -0.4px;
-  color: #e7f0fc;
+  color: #eef3fc;
 }
 
 .header-title {
@@ -130,10 +192,10 @@ svg {
   flex: 1;
   flex-direction: column;
   padding: var(--card-pad);
-  border: 1px solid #d5e8ff2e;
+  border: 1px solid var(--border);
   border-radius: var(--card-radius);
-  background: linear-gradient(160deg, #eaf4ff1c, #c9ddff08 45%, #8bceff10);
-  box-shadow: 0 24px 60px #00082a40, inset 0 1px #ffffff24;
+  background: linear-gradient(160deg, #eaf4ff33, #c9ddff17 45%, #8bceff24);
+  box-shadow: 0 24px 60px #00082a40, inset 0 1px #ffffff38;
   backdrop-filter: blur(30px);
 }
 
@@ -145,7 +207,7 @@ svg {
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: var(--cover-radius);
-  background: #0c2039;
+  background: #0a1f66;
   box-shadow: 0 12px 32px #00091f50;
 }
 
@@ -168,7 +230,7 @@ svg {
 .glass-pill,
 .scan-chip {
   border: 0;
-  background: #0a1a3366;
+  background: #0a1a3359;
   box-shadow: inset 0 1px #ffffff2e, 0 6px 18px #00000040;
   backdrop-filter: blur(16px) saturate(1.4);
   color: #fff;
@@ -196,7 +258,7 @@ svg {
   position: absolute;
   z-index: 1;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 40%, #17365d, #081426 70%);
+  background: radial-gradient(ellipse at 50% 40%, #0a1f66, #03060f 70%);
 }
 
 .viewfinder video {
@@ -211,7 +273,7 @@ svg {
   --arm: 36px;
   position: absolute;
   inset: 22%;
-  border: 3px solid var(--sky);
+  border: 3px solid var(--primary);
   border-radius: 22px;
   mask: conic-gradient(at var(--arm) var(--arm), #0000 75%, #000 0) 0 0 / calc(100% - var(--arm)) calc(100% - var(--arm));
   animation: breathe 2.6s ease-in-out infinite;
@@ -266,8 +328,8 @@ svg {
 }
 
 .retry {
-  background: #eaf4ffe6;
-  color: #10223d;
+  background: var(--primary);
+  color: #fff;
   font-weight: 600;
 }
 
@@ -334,7 +396,7 @@ svg {
 .equalizer i:nth-child(4) { height: 17px; animation-delay: -0.6s; }
 
 [data-speaking='true'] .equalizer {
-  color: var(--sky);
+  color: var(--primary-light);
   opacity: 1;
 }
 
@@ -377,12 +439,12 @@ svg {
 
 .rail {
   right: 0;
-  background: #c1ddff2e;
+  background: #8cafff33;
 }
 
 .played {
   width: var(--progress, 0%);
-  background: linear-gradient(90deg, var(--sky), var(--blush));
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
 }
 
 .thumb {
@@ -394,7 +456,7 @@ svg {
   margin: -6px 0 0 -6px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 0 0 4px #b9dcff2e, 0 0 14px #b9dcffa0;
+  box-shadow: 0 0 0 4px #1f5fff40, 0 0 14px #5a96fff2;
 }
 
 .seek {
@@ -438,7 +500,7 @@ svg {
   border: 0;
   border-radius: 50%;
   background: none;
-  color: #dbe8ff;
+  color: var(--text);
 }
 
 /* Filled shapes with a same-colour round-joined stroke: polygons with rounded corners. */
@@ -463,9 +525,9 @@ svg {
   height: 84px;
   border: 0;
   border-radius: 50%;
-  background: linear-gradient(145deg, #f4fbff, #b9d8fb 70%, #f6d9e6);
-  box-shadow: 0 8px 28px #9ec8ff33, inset 0 2px 4px #fff, inset 0 -4px 8px #6593c240;
-  color: #10223d;
+  background: linear-gradient(150deg, #3d76ff, var(--primary) 60%, #1748cc);
+  box-shadow: 0 10px 32px #1f5fff73, inset 0 1px 2px #ffffff59, inset 0 -4px 8px #0a1f6659;
+  color: #fff;
 }
 
 .play-icon {
@@ -484,7 +546,7 @@ svg {
   position: absolute;
   inset: -6px;
   border: 2px solid transparent;
-  border-top-color: var(--sky);
+  border-top-color: var(--primary-light);
   border-radius: 50%;
   opacity: 0;
   transition: opacity 0.2s;
@@ -505,7 +567,7 @@ svg {
   font-size: 12px;
   line-height: 1.5;
   text-align: center;
-  color: #b8d2ed;
+  color: var(--primary-light);
 }
 
 .status:empty {
@@ -543,8 +605,9 @@ svg {
   padding: 0;
   border: 0;
   background:
-    radial-gradient(ellipse at 70% 0%, #243b6260, transparent 60%),
-    var(--bg);
+    radial-gradient(70% 55% at 8% 4%, #1f4fd9cc, transparent 60%),
+    radial-gradient(75% 60% at 92% 100%, #2457e0d9, transparent 62%),
+    linear-gradient(160deg, #0c2468 0%, #081640 45%, #0e2b80 100%);
   color: var(--text);
 }
 
@@ -569,7 +632,7 @@ svg {
     max(var(--pad), env(safe-area-inset-right))
     var(--pad)
     max(var(--pad), env(safe-area-inset-left));
-  border-bottom: 1px solid #d5e8ff1f;
+  border-bottom: 1px solid var(--border);
 }
 
 .transcript-title {
@@ -591,7 +654,7 @@ svg {
     max(var(--pad), env(safe-area-inset-left));
   font-size: 17px;
   line-height: 1.6;
-  color: #dce7f7;
+  color: #e3e9f6;
 }
 
 .transcript-body :is(h1, h2, h3, h4) {
@@ -637,7 +700,7 @@ svg {
 }
 
 @supports not (backdrop-filter: blur(1px)) {
-  .card { background: #162a43; }
+  .card { background: #1a3270f2; }
   .glass-button,
   .glass-pill,
   .scan-chip { background: #0a1a33d9; }

@@ -70,7 +70,7 @@ export class Waves {
     this.#canvas = canvas;
     this.#context = canvas.getContext('2d');
     const styles = getComputedStyle(document.documentElement);
-    this.#colors = [styles.getPropertyValue('--sky').trim(), styles.getPropertyValue('--blush').trim()];
+    this.#colors = [styles.getPropertyValue('--primary').trim(), styles.getPropertyValue('--primary-light').trim()];
   }
 
   /** Draws one frame; returns true while the waves are still rising or settling. */

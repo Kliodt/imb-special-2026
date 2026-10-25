@@ -1,12 +1,15 @@
 import '@fontsource-variable/raleway';
 import '@fontsource-variable/raleway/wght-italic.css';
 import './style.css';
+import { renderDecor } from './decor.js';
 import { PlayIcon } from './play-icon.js';
 import { Player, Problem } from './player.js';
 import { Scanner } from './scanner.js';
 import { trackIdFrom, trackLink } from './track-link.js';
 import { Waves } from './waves.js';
 
+const decorBehind = document.getElementById('decor-behind');
+const decorFront = document.getElementById('decor-front');
 const coverGlow = document.getElementById('cover-glow');
 const coverImage = document.getElementById('cover');
 const previousCoverImage = document.getElementById('cover-previous');
@@ -33,6 +36,8 @@ const transcriptButton = document.getElementById('transcript-open');
 const transcriptDialog = document.getElementById('transcript');
 const transcriptTitle = document.getElementById('transcript-title');
 const transcriptBody = document.getElementById('transcript-body');
+
+renderDecor(decorBehind, decorFront);
 
 const problemText = {
   [Problem.NONE]: '',
