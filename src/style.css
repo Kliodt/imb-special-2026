@@ -261,6 +261,10 @@ svg {
   text-align: center;
 }
 
+.glass-pill:empty {
+  display: none;
+}
+
 .retry {
   background: #eaf4ffe6;
   color: #10223d;
@@ -506,6 +510,108 @@ svg {
 
 .status:empty {
   display: none;
+}
+
+/* Transcript: a round button next to the title opens the text full screen. */
+
+.transcript-button,
+.transcript-close {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.transcript-button[hidden] {
+  display: none;
+}
+
+.transcript-button svg,
+.transcript-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.transcript {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background:
+    radial-gradient(ellipse at 70% 0%, #243b6260, transparent 60%),
+    var(--bg);
+  color: var(--text);
+}
+
+.transcript::backdrop {
+  background: var(--bg);
+}
+
+.transcript-column {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 640px);
+  height: 100%;
+  margin: 0 auto;
+}
+
+.transcript-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding:
+    max(var(--pad), env(safe-area-inset-top))
+    max(var(--pad), env(safe-area-inset-right))
+    var(--pad)
+    max(var(--pad), env(safe-area-inset-left));
+  border-bottom: 1px solid #d5e8ff1f;
+}
+
+.transcript-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.transcript-body {
+  flex: 1;
+  overflow-y: auto;
+  padding:
+    8px
+    max(var(--pad), env(safe-area-inset-right))
+    max(32px, env(safe-area-inset-bottom))
+    max(var(--pad), env(safe-area-inset-left));
+  font-size: 17px;
+  line-height: 1.6;
+  color: #dce7f7;
+}
+
+.transcript-body :is(h1, h2, h3, h4) {
+  margin: 24px 0 8px;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.transcript-body h1 { font-size: 26px; }
+.transcript-body h2 { font-size: 22px; }
+.transcript-body h3 { font-size: 19px; }
+.transcript-body h4 { font-size: 17px; }
+
+.transcript-body p {
+  margin: 16px 0 0;
+}
+
+.transcript-body b {
+  font-weight: 700;
+  color: var(--text);
 }
 
 @media (min-width: 480px) {

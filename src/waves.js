@@ -26,13 +26,36 @@ const LAYERS = [
     ],
   },
 ];
-const TAPER_PX = 90;
+// Next to the dot the crest is capped by a slope rising from the line: over `width` px up to `height` px,
+// shaped by `curve` exactly like CSS cubic-bezier(x1, y1, x2, y2). With the linear curve [0, 0, 1, 1]
+// the angle is atan(height / width): 30 px over 52 px ≈ 30°. [0, 0.6, 0.4, 1] starts steeper and rounds off.
+// The corner where the slope meets the crest is rounded over EDGE_ROUNDING_PX.
+const EDGE = { width: 52, height: 30, curve: [0, 0, 1, 1] };
+const EDGE_ROUNDING_PX = 4;
 const RISE_MS = 160;
 const SETTLE_MS = 320;
 const STEP_PX = 3;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 const smoothstep = t => t * t * (3 - 2 * t);
+const softMin = (a, b, k) => (a + b - Math.sqrt((a - b) ** 2 + k * k)) / 2;
+
+/** y for a given x on a CSS-style cubic-bezier easing curve (x solved by bisection). */
+function cubicBezier([x1, y1, x2, y2]) {
+  const point = (t, p1, p2) => 3 * p1 * t * (1 - t) ** 2 + 3 * p2 * t * t * (1 - t) + t ** 3;
+  return x => {
+    let low = 0;
+    let high = 1;
+    for (let i = 0; i < 20; i++) {
+      const t = (low + high) / 2;
+      if (point(t, x1, x2) < x) low = t;
+      else high = t;
+    }
+    return point((low + high) / 2, y1, y2);
+  };
+}
+
+const edgeCurve = cubicBezier(EDGE.curve);
 
 /** Two morphing wave layers drawn above the passed part of the progress line; they ease into it at the dot. */
 export class Waves {
@@ -95,9 +118,9 @@ export class Waves {
         for (const [frequency, weight, phase] of harmonics) {
           shape += weight * Math.sin((at / layer.wavelength) * Math.PI * 2 * frequency + phase);
         }
-        const envelope = smoothstep(Math.min(1, (end - at) / TAPER_PX));
-        const crest = layer.height * this.#level * envelope * (0.5 + 0.5 * (shape / total));
-        context.lineTo(at, height - crest * height);
+        const crest = layer.height * this.#level * (0.5 + 0.5 * (shape / total)) * height;
+        const edge = EDGE.height * edgeCurve(Math.min(1, (end - at) / EDGE.width));
+        context.lineTo(at, height - Math.max(0, softMin(crest, edge, EDGE_ROUNDING_PX)));
       }
       context.lineTo(end, height);
       context.closePath();

@@ -1,4 +1,4 @@
-const BED_VOLUME = 0.22;
+const DEFAULT_BED_VOLUME = 0.22;
 
 export const Problem = Object.freeze({
   NONE: 'none',
@@ -15,13 +15,13 @@ export class Player {
   #emit;
   #problem = Problem.NONE;
 
-  constructor({ ambient, onChange }) {
+  constructor({ ambient, ambientVolume = DEFAULT_BED_VOLUME, onChange }) {
     this.#emit = onChange;
     this.#voice.preload = 'auto';
     this.#bed = new Audio(ambient);
     this.#bed.loop = true;
     this.#bed.preload = 'auto';
-    this.#bed.volume = BED_VOLUME;
+    this.#bed.volume = ambientVolume;
 
     for (const type of ['play', 'pause', 'playing', 'waiting', 'canplay', 'timeupdate', 'durationchange']) {
       this.#voice.addEventListener(type, () => this.#emit());

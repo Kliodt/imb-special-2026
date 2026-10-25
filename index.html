@@ -21,9 +21,9 @@
         <img id="cover" class="cover" alt="" width="800" height="800" decoding="async">
         <img id="cover-previous" class="cover cover-previous" alt="" aria-hidden="true">
 
-        <button id="scan" class="scan-chip" disabled>
+        <button id="scan" class="scan-chip" aria-label="Сканировать QR-код" disabled>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3M7 12h10"/></svg>
-          Сканировать QR
+          QR
         </button>
 
         <section id="viewfinder" class="viewfinder" aria-label="Сканер QR-кода" hidden>
@@ -46,6 +46,9 @@
             <p id="artist" class="artist"></p>
           </div>
           <span class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <button id="transcript-open" class="glass-button transcript-button" aria-label="Текст рассказа" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg>
+          </button>
         </div>
 
         <div>
@@ -60,7 +63,7 @@
         </div>
 
         <div class="controls">
-          <button id="back" class="icon-button" aria-label="Предыдущая история" disabled>
+          <button id="back" class="icon-button" aria-label="Сканировать QR-код другого экспоната" disabled>
             <svg class="rounded-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M23.5,9.5 L12.5,16 23.5,22.5Z M8.5,9 V23"/></svg>
           </button>
           <button id="play" class="play" aria-label="Слушать" data-state="paused" disabled>
@@ -68,7 +71,7 @@
               <path><animate attributeName="d" dur="0.6s" begin="indefinite" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.19 1 0.22 1"/></path>
             </svg>
           </button>
-          <button id="next" class="icon-button" aria-label="Следующая история" disabled>
+          <button id="next" class="icon-button" aria-label="Сканировать QR-код следующего экспоната" disabled>
             <svg class="rounded-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M8.5,9.5 L19.5,16 8.5,22.5Z M23.5,9 V23"/></svg>
           </button>
         </div>
@@ -77,5 +80,17 @@
       </section>
     </article>
   </main>
+
+  <dialog id="transcript" class="transcript" aria-labelledby="transcript-title">
+    <div class="transcript-column">
+      <form method="dialog" class="transcript-head">
+        <h2 id="transcript-title" class="transcript-title"></h2>
+        <button class="glass-button transcript-close" aria-label="Закрыть текст">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </form>
+      <div id="transcript-body" class="transcript-body"></div>
+    </div>
+  </dialog>
 </body>
 </html>

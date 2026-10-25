@@ -3,10 +3,11 @@ import zxingWasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url';
 const SCAN_INTERVAL_MS = 150;
 const FORMATS = ['qr_code'];
 const CAMERA = { video: { facingMode: { ideal: 'environment' } }, audio: false };
+const FOREIGN_FADE = { delay: 5000, duration: 600, easing: 'ease', fill: 'forwards' };
 
 const Status = Object.freeze({
+  NONE: '',
   REQUESTING: 'Разреши доступ к камере',
-  AIMING: 'Наведи на QR-код у экспоната',
   FOREIGN: 'Это не код выставки',
   INSECURE: 'Камера в браузере работает только по HTTPS',
   DENIED: 'Доступ к камере запрещён в настройках браузера',
@@ -42,7 +43,7 @@ function getDetector() {
 
 /** Camera viewfinder that lives inside the cover square. */
 export class Scanner {
-  #trigger;
+  #opener = null;
   #viewfinder;
   #video;
   #status;
@@ -52,19 +53,18 @@ export class Scanner {
   #stream = null;
   #timer = 0;
   #isOpen = false;
+  #statusFade = null;
   // Bumped on every stop so that stale async camera starts and scan loops bail out.
   #session = 0;
 
   /** @param {{ onCode: (text: string) => boolean }} options onCode returns true when the code is accepted. */
-  constructor({ trigger, viewfinder, video, status, retry, closeButton, onCode }) {
-    this.#trigger = trigger;
+  constructor({ viewfinder, video, status, retry, closeButton, onCode }) {
     this.#viewfinder = viewfinder;
     this.#video = video;
     this.#status = status;
     this.#retry = retry;
     this.#closeButton = closeButton;
     this.#onCode = onCode;
-    trigger.addEventListener('click', () => this.open());
     closeButton.addEventListener('click', () => this.close());
     retry.addEventListener('click', () => this.#startCamera());
     document.addEventListener('keydown', event => {
@@ -75,9 +75,11 @@ export class Scanner {
     });
   }
 
+  /** Closing without a code keeps the current track playing; focus returns to the button that opened it. */
   open() {
     if (this.#isOpen) return;
     this.#isOpen = true;
+    this.#opener = document.activeElement;
     this.#viewfinder.hidden = false;
     this.#closeButton.focus();
     this.#startCamera();
@@ -89,7 +91,7 @@ export class Scanner {
     const hadFocus = this.#viewfinder.contains(document.activeElement);
     this.#viewfinder.hidden = true;
     this.#stopCamera();
-    if (hadFocus) this.#trigger.focus();
+    if (hadFocus) this.#opener?.focus();
   }
 
   async #startCamera() {
@@ -97,7 +99,7 @@ export class Scanner {
     const session = this.#session;
     this.#retry.hidden = true;
     this.#viewfinder.classList.remove('unavailable');
-    this.#status.textContent = Status.REQUESTING;
+    this.#setStatus(Status.REQUESTING);
     if (!navigator.mediaDevices?.getUserMedia) {
       this.#fail(Status.INSECURE, false);
       return;
@@ -114,7 +116,7 @@ export class Scanner {
       this.#video.srcObject = stream;
       const [detector] = await Promise.all([getDetector(), this.#video.play()]);
       if (session !== this.#session) return;
-      this.#status.textContent = Status.AIMING;
+      this.#setStatus(Status.NONE);
       this.#scan(detector, session);
     } catch (error) {
       if (session !== this.#session) return;
@@ -132,7 +134,7 @@ export class Scanner {
         this.close();
         return;
       }
-      if (code) this.#status.textContent = Status.FOREIGN;
+      if (code) this.#showForeign();
       this.#timer = setTimeout(tick, SCAN_INTERVAL_MS);
     };
     tick();
@@ -146,8 +148,29 @@ export class Scanner {
     this.#video.srcObject = null;
   }
 
+  /** Shows the hint and fades it out after a while; a code seen again meanwhile does not restart the timer. */
+  #showForeign() {
+    if (this.#statusFade) return;
+    this.#setStatus(Status.FOREIGN);
+    const fade = this.#status.animate([{ opacity: 1 }, { opacity: 0 }], FOREIGN_FADE);
+    this.#statusFade = fade;
+    fade.finished
+      .then(() => {
+        if (this.#statusFade === fade) this.#setStatus(Status.NONE);
+      })
+      .catch(() => {
+        // Cancelled by another status.
+      });
+  }
+
+  #setStatus(text) {
+    this.#statusFade?.cancel();
+    this.#statusFade = null;
+    this.#status.textContent = text;
+  }
+
   #fail(status, canRetry) {
-    this.#status.textContent = status;
+    this.#setStatus(status);
     this.#retry.hidden = !canRetry;
     this.#viewfinder.classList.add('unavailable');
   }

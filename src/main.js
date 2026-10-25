@@ -1,4 +1,5 @@
 import '@fontsource-variable/raleway';
+import '@fontsource-variable/raleway/wght-italic.css';
 import './style.css';
 import { PlayIcon } from './play-icon.js';
 import { Player, Problem } from './player.js';
@@ -28,6 +29,10 @@ const playButton = document.getElementById('play');
 const playIconSvg = document.getElementById('play-icon');
 const nextButton = document.getElementById('next');
 const statusText = document.getElementById('status');
+const transcriptButton = document.getElementById('transcript-open');
+const transcriptDialog = document.getElementById('transcript');
+const transcriptTitle = document.getElementById('transcript-title');
+const transcriptBody = document.getElementById('transcript-body');
 
 const problemText = {
   [Problem.NONE]: '',
@@ -84,12 +89,11 @@ let lastProgressFrame = 0;
 const preloaded = new Map();
 const preloadedUrl = path => preloaded.get(path) ?? path;
 
-const player = new Player({ ambient: config.ambient, onChange: render });
+const player = new Player({ ambient: config.ambient, ambientVolume: config.ambientVolume, onChange: render });
 const waves = new Waves(wavesCanvas);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const playIcon = new PlayIcon(playIconSvg);
-new Scanner({
-  trigger: scanButton,
+const scanner = new Scanner({
   viewfinder,
   video: cameraVideo,
   status: cameraStatusText,
@@ -118,6 +122,7 @@ function showTrack(index, autoplay) {
   coverGlow.style.backgroundImage = `url("${cover}")`;
   titleHeading.textContent = track.title;
   artistText.textContent = track.artist;
+  transcriptButton.hidden = !track.transcript;
   if (previousCover) animateTrackChange(previousCover);
   history.replaceState(null, '', trackLink(location.href, track.id));
   if ('mediaSession' in navigator) {
@@ -148,8 +153,18 @@ async function preloadMedia() {
   for (const track of queue) await preload(track.audio, 'audio/');
 }
 
-function step(delta) {
-  showTrack((current + delta + tracks.length) % tracks.length, player.playing);
+function openTranscript() {
+  const track = tracks[current];
+  transcriptTitle.textContent = track.title;
+  transcriptBody.innerHTML = track.transcript;
+  transcriptBody.scrollTop = 0;
+  transcriptDialog.showModal();
+  if (!reducedMotion.matches) {
+    transcriptDialog.animate(
+      [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }],
+      { duration: 350, easing: 'cubic-bezier(0.2, 0.7, 0.3, 1)' },
+    );
+  }
 }
 
 function acceptCode(text) {
@@ -210,8 +225,9 @@ function render() {
 }
 
 playButton.addEventListener('click', () => player.toggle());
-backButton.addEventListener('click', () => step(-1));
-nextButton.addEventListener('click', () => step(1));
+// Exhibits are switched only by their QR codes: every "switch" button opens the scanner.
+for (const button of [scanButton, backButton, nextButton]) button.addEventListener('click', () => scanner.open());
+transcriptButton.addEventListener('click', openTranscript);
 seekInput.addEventListener('input', () => {
   seeking = true;
   render();
@@ -233,8 +249,6 @@ if ('mediaSession' in navigator) {
   const handlers = {
     play: () => player.play(),
     pause: () => player.pause(),
-    previoustrack: () => step(-1),
-    nexttrack: () => step(1),
   };
   for (const [action, handler] of Object.entries(handlers)) {
     try {
